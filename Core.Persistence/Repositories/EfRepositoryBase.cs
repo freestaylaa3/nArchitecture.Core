@@ -14,7 +14,6 @@ public class EfRepositoryBase<TEntity, TEntityId, TContext> : IAsyncRepository<T
     where TContext : DbContext
 {
     protected readonly TContext Context;
-
     public EfRepositoryBase(TContext context)
     {
         Context = context;
@@ -70,6 +69,41 @@ public class EfRepositoryBase<TEntity, TEntityId, TContext> : IAsyncRepository<T
         return entities;
     }
 
+    public async Task<List<TEntity?>> GetAllAsync(
+        Expression<Func<TEntity,
+            bool>>? predicate = null,
+        Func<IQueryable<TEntity>,
+            IOrderedQueryable<TEntity>>? orderBy = null,
+        Func<IQueryable<TEntity>,
+            IIncludableQueryable<TEntity,
+                object>>? include = null,
+        bool enableTracking = true,
+        bool withDeleted = false,
+        CancellationToken cancellationToken = default)
+    {
+        IQueryable<TEntity> queryable = Query();
+        if (!enableTracking)
+            queryable = queryable.AsNoTracking();
+        if (include != null)
+            queryable = include(queryable);
+        if (predicate != null)
+            queryable = queryable.Where(predicate);
+        if (!withDeleted)
+            queryable = queryable.Where(e => e.DeletedDate == null);
+        if (orderBy != null)
+            return await orderBy(queryable).ToListAsync(cancellationToken);
+        return await queryable.ToListAsync(cancellationToken);
+    }
+
+    //public async Task<TEntity?> GetById(int id, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null, bool enableTracking = true, CancellationToken cancellationToken = default)
+    //{
+    //    IQueryable<TEntity> queryable = Query().AsQueryable();
+    //    if (!enableTracking)
+    //        queryable = queryable.AsNoTracking();
+    //    if (include != null)
+    //        queryable = include(queryable);
+    //    return await queryable.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
+    //}
     public async Task<IPaginate<TEntity>> GetListAsync(
         Expression<Func<TEntity, bool>>? predicate = null,
         Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null,
@@ -88,6 +122,8 @@ public class EfRepositoryBase<TEntity, TEntityId, TContext> : IAsyncRepository<T
             queryable = include(queryable);
         if (withDeleted)
             queryable = queryable.IgnoreQueryFilters();
+        if (!withDeleted)
+            queryable = queryable.Where(e => e.DeletedDate == null);
         if (predicate != null)
             queryable = queryable.Where(predicate);
         if (orderBy != null)

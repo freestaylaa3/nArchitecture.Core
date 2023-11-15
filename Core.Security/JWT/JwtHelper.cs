@@ -26,7 +26,7 @@ public class JwtHelper : ITokenHelper
 
     public AccessToken CreateToken(User user, IList<OperationClaim> operationClaims)
     {
-        _accessTokenExpiration = DateTime.Now.AddMinutes(_tokenOptions.AccessTokenExpiration);
+        _accessTokenExpiration = DateTime.Now.AddHours(_tokenOptions.AccessTokenExpiration);
         SecurityKey securityKey = SecurityKeyHelper.CreateSecurityKey(_tokenOptions.SecurityKey);
         SigningCredentials signingCredentials = SigningCredentialsHelper.CreateSigningCredentials(securityKey);
         JwtSecurityToken jwt = CreateJwtSecurityToken(_tokenOptions, user, signingCredentials, operationClaims);
@@ -75,10 +75,21 @@ public class JwtHelper : ITokenHelper
         claims.AddNameIdentifier(user.Id.ToString());
         claims.AddEmail(user.Email);
         claims.AddName($"{user.FirstName} {user.LastName}");
+        var companyId = operationClaims.FirstOrDefault(c => c.Id == -1);
+        if (companyId is not null)
+        {
+            AddCompanyIdClaim(claims, companyId.Name);
+            operationClaims.Remove(operationClaims.FirstOrDefault(c => c.Id == -1)!);
+        }
         claims.AddRoles(operationClaims.Select(c => c.Name).ToArray());
         return claims;
     }
 
+    private List<Claim> AddCompanyIdClaim(List<Claim> claims, string companyId)
+    {
+        claims.Add(new Claim("companyId", companyId));
+        return claims;
+    }
     private string RandomRefreshToken()
     {
         byte[] numberByte = new byte[32];

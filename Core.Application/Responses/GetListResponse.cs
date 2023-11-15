@@ -9,6 +9,7 @@ public class GetListResponse<T> : BasePageableModel
         get => _items ??= new List<T>();
         set => _items = value;
     }
+    public IList<object> Extras { get; set; } = new List<object>();
 
     private IList<T>? _items;
 }

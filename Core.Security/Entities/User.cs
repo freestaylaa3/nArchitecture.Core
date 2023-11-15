@@ -1,5 +1,6 @@
 ﻿using Core.Persistence.Repositories;
 using Core.Security.Enums;
+using System.Numerics;
 
 namespace Core.Security.Entities;
 
@@ -8,9 +9,10 @@ public class User : Entity<int>
     public string FirstName { get; set; }
     public string LastName { get; set; }
     public string Email { get; set; }
+    public string? Phone { get; set; }
+    public bool Status { get; set; } = true;
     public byte[] PasswordSalt { get; set; }
     public byte[] PasswordHash { get; set; }
-    public bool Status { get; set; }
     public AuthenticatorType AuthenticatorType { get; set; }
 
     public virtual ICollection<UserOperationClaim> UserOperationClaims { get; set; } = null!;
@@ -31,18 +33,20 @@ public class User : Entity<int>
         string firstName,
         string lastName,
         string email,
+        string? phone,
+        bool status,
         byte[] passwordSalt,
         byte[] passwordHash,
-        bool status,
         AuthenticatorType authenticatorType
     )
     {
         FirstName = firstName;
         LastName = lastName;
         Email = email;
+        Phone = phone;
+        Status = status;
         PasswordSalt = passwordSalt;
         PasswordHash = passwordHash;
-        Status = status;
         AuthenticatorType = authenticatorType;
     }
 
@@ -51,9 +55,10 @@ public class User : Entity<int>
         string firstName,
         string lastName,
         string email,
+        string? phone,
+        bool status,
         byte[] passwordSalt,
         byte[] passwordHash,
-        bool status,
         AuthenticatorType authenticatorType
     )
         : base(id)
@@ -61,9 +66,10 @@ public class User : Entity<int>
         FirstName = firstName;
         LastName = lastName;
         Email = email;
+        Phone = phone;
+        Status = status;
         PasswordSalt = passwordSalt;
         PasswordHash = passwordHash;
-        Status = status;
         AuthenticatorType = authenticatorType;
     }
 }
